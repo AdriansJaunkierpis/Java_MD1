@@ -23,6 +23,6 @@ public class Cashier extends Employee {
 	}
 	
 	public String toString() {
-		return "Cashier, ID: " + getId() + ", Name: " + getName() + " " + getSurname();
+		return "Cashier, ID: " + getId() + ", " + getPersonCode() +", Name: " + getName() + " " + getSurname() + ", Contract: " + getContractDate() + ", " + getContractNumber();
 	}
 }

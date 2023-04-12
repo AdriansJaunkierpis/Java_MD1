@@ -32,12 +32,15 @@ public class BusDriver extends Employee {
 		super();
 		setExperienceYears(0); //maybe vajag declarot categories
 	}
-	public BusDriver(String name, String surname, String personCode, LocalDate contractDate, int experience) {
-		super();
+	public BusDriver(String name, String surname, String personCode, LocalDate contractDate, ArrayList<BusCategory> categories, int experience) {
+		super(name, surname, personCode, contractDate);
+		for (BusCategory temp : categories) {
+			addCategory(temp);
+		}
 		setExperienceYears(experience);
 	}
 	
 	public String toString() {
-		return getName() + " " + getSurname() + " " + getPersonCode() + ", Contract: " + getContractDate() + ", " + getContractNumber() + ", Experience: " + experienceYears + ", Categories: " + categories;
+		return "BusDriver: " + getName() + " " + getSurname() + " " + getPersonCode() + ", Contract: " + getContractDate() + ", " + getContractNumber() + ", Experience: " + experienceYears + ", Categories: " + categories;
 	}
 }
