@@ -1,14 +1,17 @@
 package service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 import model.BusCategory;
 import model.BusDriver;
 import model.BusTrip;
 import model.Cashier;
+import model.City;
 import model.Employee;
 import model.Station;
+import model.Ticket;
 
 public class MainService {
 
@@ -19,18 +22,18 @@ public class MainService {
 	public static void main(String[] args) {
 		System.out.println("---Cashier---");
 		addNewCashier("Artis", "Arns", "123456-78910", LocalDate.of(2023, 3, 13));
-		addNewCashier("Brigita", "Berza", "654321-01987", LocalDate.now());
-		addNewCashier("Centis", "Ceplis", "456780-75634", LocalDate.now());
+		addNewCashier("Brigita", "Berza", "654321-01987", LocalDate.of(2023, 4, 16));
+		addNewCashier("Centis", "Ceplis", "456780-75634", LocalDate.of(2023, 3, 30));
 		
-		System.out.println("Find by person code: \"123456-78910\": " + findCashierByPersonCode(allEmployeesList, "123456-78910"));
+		System.out.println("Find by person code: \"123456-78910\": " + findCashierByPersonCode("123456-78910"));
 		
 		System.out.print("Edit by person code: \"123456-78910\", ");
-		updateCashierByPersonCode(allEmployeesList, "123456-78910", "123456-78910", "Arnis", "Barts", LocalDate.now());
-		System.out.println("new data: " + findCashierByPersonCode(allEmployeesList, "123456-78910"));
+		updateCashierByPersonCode("123456-78910", "123456-78910", "Arnis", "Barts", LocalDate.now());
+		System.out.println("new data: " + findCashierByPersonCode("123456-78910"));
 		
-		System.out.println("Delete by person code: \"123456-78910\", ");
-		deleteCashierByPersonCode("123456-78910");
-		System.out.println("Find all Cashiers: " + findAllCashiers(allEmployeesList));
+		System.out.println("Delete by person code: \"654321-01987\", ");
+		deleteCashierByPersonCode("654321-01987");
+		System.out.println("Find all Cashiers: " + findAllCashiers());
 		
 		
 		System.out.println("\n---BusDriver---");
@@ -49,30 +52,48 @@ public class MainService {
 		
 		
 		System.out.println("\n---Station---");
-		
+		addNewStation(City.Ventspils, "VentspilsAO", "8-17");
+		addNewStation(City.Daugavpils, "DaugavpilsAO", "8-17");
+		addNewStation(City.Jelgava, "JelgavaAO", "8-17");
+		addNewStation(City.Liepaja, "LiepajaAO", "8-17");
+		addNewStation(City.Riga, "RigaAO", "8-17");
 		
 		System.out.println("\n---BusTrip---");
-		
+		LocalDateTime nowTime = LocalDateTime.now(); 
+		addNewBusTrip(findStationByName("VentspilsAO"), findStationByName("RigaAO"), nowTime, nowTime.plusHours(3), 35, findBusDriverForCategory(BusCategory.largebus).get(0));
+		addNewBusTrip(findStationByName("VentspilsAO"), findStationByName("LiepajaAO"), nowTime, nowTime.plusHours(2), 2, findBusDriverForCategory(BusCategory.minibus).get(1));
+		System.out.println("Find all bus trips from station today: " + findAllBusTripsFromStationToday(findStationByName("VentspilsAO")));
+		System.out.println("Find free spots Ventspils-Riga: " + freeSeatCountOnBusTrip(nowTime, findStationByName("VentspilsAO"), findStationByName("RigaAO")));
+		System.out.println("Find all tickets for Ventspils-Riga: " + findAllTicketsForBusTrip(nowTime, findStationByName("VentspilsAO"), findStationByName("RigaAO")));
 		
 		System.out.println("\n---Ticket---");
+		System.out.println("Add more tickets than seats: ");
+		addTicketToBusTrip(1, (float)11.2, findCashierByPersonCode("123456-78910"), false, nowTime, findStationByName("VentspilsAO"), findStationByName("LiepajaAO"));
+		addTicketToBusTrip(1, (float)11.2, findCashierByPersonCode("123456-78910"), true, nowTime, findStationByName("VentspilsAO"), findStationByName("LiepajaAO"));
+		addTicketToBusTrip(1, (float)11.2, findCashierByPersonCode("123456-78910"), false, nowTime, findStationByName("VentspilsAO"), findStationByName("LiepajaAO"));
+		System.out.println("Find all tickets for Ventspils-Liepaja: " + findAllTicketsForBusTrip(nowTime, findStationByName("VentspilsAO"), findStationByName("LiepajaAO")));
 		
+		addTicketToBusTrip(1, (float)11.2, findCashierByPersonCode("123456-78910"), false, nowTime, findStationByName("VentspilsAO"), findStationByName("RigaAO"));
+		addTicketToBusTrip(0, (float)16.2, findCashierByPersonCode("123456-78910"), true, nowTime, findStationByName("VentspilsAO"), findStationByName("RigaAO"));
+		addTicketToBusTrip(1, (float)11.2, findCashierByPersonCode("123456-78910"), false, nowTime, findStationByName("VentspilsAO"), findStationByName("RigaAO"));
+		System.out.println("Find all VIP tickets for today: " + findAllVipTicketsForToday());
+		System.out.println("Income by cashier \"123456-78910\": " + incomeByCashierToday("123456-78910")); //(11.2-1)+(11.2-1)+(11.2-1)+(16.2-0)+(11.2) = 57
 		
 		System.out.println("\n---Extra---");
 	}
 	public static void addNewCashier(String name, String surname, String personCode, LocalDate dateTime) {
 		allEmployeesList.add(new Cashier(name, surname, personCode, dateTime));
 	}
-	public static ArrayList<Employee> findCashierByPersonCode(ArrayList<Employee> empList, String personCode) {
-		ArrayList<Employee> foundCashiers = new ArrayList<>();
-		for (Employee temp: empList) {
+	public static Cashier findCashierByPersonCode(String personCode) {
+		for (Employee temp: allEmployeesList) {
 			if (temp instanceof Cashier && temp.getPersonCode() == personCode) {
-				foundCashiers.add(temp);
+				return ((Cashier) temp);
 			}
 		}
-		return foundCashiers;
+		return null;
 	}
-	public static void updateCashierByPersonCode(ArrayList<Employee> empList, String oldPersonCode, String newPersonCode, String newName, String newSurname, LocalDate dateTime) {
-		for (Employee temp: empList) {
+	public static void updateCashierByPersonCode(String oldPersonCode, String newPersonCode, String newName, String newSurname, LocalDate dateTime) {
+		for (Employee temp: allEmployeesList) {
 			if (temp instanceof Cashier && temp.getPersonCode() == oldPersonCode) {
 				temp.setPersonCode(newPersonCode);
 				temp.setName(newName);
@@ -90,9 +111,9 @@ public class MainService {
 			}
 		}
 	}
-	public static ArrayList<Employee> findAllCashiers(ArrayList<Employee> empList) {
+	public static ArrayList<Employee> findAllCashiers() {
 		ArrayList<Employee> foundCashiers = new ArrayList<>();
-		for (Employee temp: empList) {
+		for (Employee temp: allEmployeesList) {
 			if (temp instanceof Cashier) {
 				foundCashiers.add(temp);
 			}
@@ -104,11 +125,11 @@ public class MainService {
 	public static void addNewBusDriver(String name, String surname, String personCode, LocalDate dateTime, ArrayList<BusCategory> categories, int years) {
 		allEmployeesList.add(new BusDriver(name, surname, personCode, dateTime, categories, years));
 	}
-	public static ArrayList<Employee> findBusDriverForCategory(BusCategory category) {
-		ArrayList<Employee> foundDriver = new ArrayList<>();
+	public static ArrayList<BusDriver> findBusDriverForCategory(BusCategory category) {
+		ArrayList<BusDriver> foundDriver = new ArrayList<>();
 		for (Employee temp: allEmployeesList) {
 			if (temp instanceof BusDriver && ((BusDriver) temp).getCategories().contains(category)) {
-				foundDriver.add(temp);
+				foundDriver.add((BusDriver) temp);
 			}
 		}
 		return foundDriver;
@@ -133,4 +154,97 @@ public class MainService {
 	}
 	
 	//Station
+	public static void addNewStation(City city, String stationName, String workingHours) {
+		allStationList.add(new Station(city, stationName, workingHours));
+	}
+	public static Station findStationByName(String name) {
+		for (Station temp: allStationList) {
+			if (temp.getStationName() == name) {
+				return temp;
+			}
+		}
+		return null;
+	}
+	
+	//BusTrip
+	public static void addNewBusTrip(Station startStation, Station destinationStation, LocalDateTime fromDateTime, LocalDateTime toDateTime, int seatCount, BusDriver driver) {
+		allBusTripList.add(new BusTrip(startStation, destinationStation, fromDateTime, toDateTime, seatCount, driver));
+	}
+	public static int freeSeatCountOnBusTrip(LocalDateTime dateTime, Station startStation, Station destinationStation) {
+		int freeSpots = 0;
+		for (BusTrip temp: allBusTripList) {
+			if (temp.getFromDateTime() == dateTime && temp.getStartStation() == startStation && temp.getDestinationStation() == destinationStation) {
+				freeSpots = temp.getSeatCount() - temp.getTickets().size();
+			}
+		}
+		return freeSpots;
+	}
+	public static ArrayList<Ticket> findAllTicketsForBusTrip(LocalDateTime dateTime, Station startStation, Station destinationStation) {
+		ArrayList<Ticket> foundTickets = new ArrayList<>();
+		for (BusTrip temp: allBusTripList) {
+			if (temp.getFromDateTime() == dateTime && temp.getStartStation() == startStation && temp.getDestinationStation() == destinationStation) {
+				foundTickets = temp.getTickets();
+			}
+		}
+		return foundTickets;
+	}
+	public static ArrayList<BusTrip> findAllBusTripsFromStationToday(Station station) {
+		ArrayList<BusTrip> foundBusTrips = new ArrayList<>();
+		for (BusTrip temp: allBusTripList) {
+			if (temp.getStartStation() == station) {
+				if (temp.getFromDateTime().getDayOfYear() == LocalDate.now().getDayOfYear() && temp.getFromDateTime().getYear() == LocalDate.now().getYear()) {
+					foundBusTrips.add(temp);
+				}
+			}
+		}
+		return foundBusTrips;
+	}
+	
+	//Ticket
+	public static void addTicketToBusTrip(int discount, float price, Cashier cashier, boolean vipTicket, LocalDateTime dateTime, Station startStation, Station destinationStation) {
+		for (BusTrip temp: allBusTripList) {
+			if (temp.getFromDateTime() == dateTime && temp.getStartStation() == startStation && temp.getDestinationStation() == destinationStation) {
+				try {
+					temp.addTicket(new Ticket(discount, price, cashier, vipTicket));
+					break;
+				} catch (Exception e) {System.out.println(e);}
+			}
+		}
+	}
+	
+	//General
+	public static float incomeByCashierToday(String personCode) {
+		float income = 0;
+		Cashier cashier = new Cashier();
+		for (Employee temp: allEmployeesList) {
+			if (temp instanceof Cashier && temp.getPersonCode() == personCode) {
+				cashier = (Cashier) temp;
+			}
+		}
+		for (BusTrip temp: allBusTripList) {
+			for (Ticket tempTicket: temp.getTickets()) {
+				if (cashier == tempTicket.getCashier()) {
+					income += tempTicket.getPrice() - tempTicket.getDiscount();
+				}
+			}
+		}
+		return income;
+	}
+	public static ArrayList<Ticket> findAllVipTicketsForToday() {
+		ArrayList<Ticket> allVipTickets = new ArrayList<>();
+		for (BusTrip temp: allBusTripList) {
+			for (Ticket tempTicket: temp.getTickets()) {
+				if (tempTicket.isVipTicket() && tempTicket.getDateTime().getDayOfYear() == LocalDate.now().getDayOfYear() && tempTicket.getDateTime().getYear() == LocalDate.now().getYear()) {
+					allVipTickets.add(tempTicket);
+				}
+			}
+		}
+		return allVipTickets;
+	}
+	/*public static ArrayList<BusTrip> sortBusTripByTimeToday(Station station) {
+		
+	}
+	public static void generateBusTrips() {
+		
+	}*/
 }

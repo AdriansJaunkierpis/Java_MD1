@@ -39,7 +39,7 @@ public class BusTrip {
 		return tickets;
 	}
 	
-	public void setId(long id) {
+	public void setId() {
 		id = idCounter++;
 	}
 	public void setStartStation(Station startStation) throws Exception {
@@ -52,22 +52,22 @@ public class BusTrip {
 	}
 	public void setDestinationStation(Station destinationStation) throws Exception {
 		if (startStation == destinationStation) {
-			throw new Exception("Matching start and destination stations");
+			throw new Exception("Matching destination and start stations");
 		} else {
-			this.destinationStation = startStation;
+			this.destinationStation = destinationStation;
 		}
 	}
 	public void setFromDateTime(LocalDateTime fromDateTime) throws Exception {
-		if (fromDateTime.isBefore(LocalDateTime.now())) {
+		if (fromDateTime.isBefore(LocalDateTime.now().minusMinutes(1))) {
 			throw new Exception("The departing time is in the past");
 		} else {
 			this.fromDateTime = fromDateTime;
 		}
 	}
 	public void setToDateTime(LocalDateTime toDateTime) throws Exception {
-		if (fromDateTime.isBefore(LocalDateTime.now())) {
+		if (toDateTime.isBefore(LocalDateTime.now())) {
 			throw new Exception("The arrival time is in the past");
-		} else if (fromDateTime.isBefore(fromDateTime)) {
+		} else if (toDateTime.isBefore(fromDateTime)) {
 			throw new Exception("The arrival time is set before the departing time");
 		} else {
 			this.toDateTime = toDateTime;
@@ -101,5 +101,23 @@ public class BusTrip {
 		} else {
 			tickets.add(ticket);
 		}
+	}
+
+	public BusTrip(Station startStation, Station destinationStation, LocalDateTime fromDateTime, LocalDateTime toDateTime, int seatCount, BusDriver driver) {
+		try {
+			setId();
+			setStartStation(startStation);
+			setDestinationStation(destinationStation);
+			setFromDateTime(fromDateTime);
+			setToDateTime(toDateTime);
+			setSeatCount(seatCount);
+			setDriver(driver);
+		} catch(Exception e) {
+			System.out.println(e);
+		}
+	}
+	
+	public String toString() {
+		return "BusTrip: " + id + "; " + getStartStation() + " - " + getDestinationStation() + "; Time: " + getFromDateTime() + " - " + getToDateTime() + "; seats: " + getSeatCount() + "; Driver: " + getDriver();
 	}
 }

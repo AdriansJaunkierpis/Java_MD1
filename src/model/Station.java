@@ -44,7 +44,7 @@ public class Station {
 		setWorkingHours("Unknown");
 		setId();
 	}
-	public Station(City city, String stationName, String workingHours, long id) {
+	public Station(City city, String stationName, String workingHours) {
 		setCity(city);
 		setStationName(stationName);
 		setWorkingHours(workingHours);
