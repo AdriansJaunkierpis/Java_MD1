@@ -81,7 +81,7 @@ public class BusTrip {
 		}
 	}
 	public void setDriver(BusDriver driver) throws Exception { //gan v., gan vii.
-		if (seatCount < 30 && (driver.getCategories().contains(BusCategory.minibus) || driver.getCategories().contains(BusCategory.schoolbus))) {
+		if (seatCount < 30 && (driver.getCategories().contains(BusCategory.minibus) || driver.getCategories().contains(BusCategory.schoolbus) || driver.getCategories().contains(BusCategory.largebus))) {
 			this.driver = driver;
 		} else if (seatCount >= 30 && driver.getCategories().contains(BusCategory.largebus)) {
 			this.driver = driver;

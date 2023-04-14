@@ -37,8 +37,6 @@ public class MainService {
 		
 		
 		System.out.println("\n---BusDriver---");
-		//ArrayList<BusCategory> categs = new ArrayList<>();
-		//categs.add(BusCategory.minibus);
 		addNewBusDriver("Raimons", "Rauls", "321654-56473", LocalDate.of(2023, 4, 6), new ArrayList<BusCategory>() {{add(BusCategory.minibus);add(BusCategory.schoolbus);}}, 3);
 		addNewBusDriver("Zigmars", "Zalais", "307512-02032", LocalDate.of(2023, 8, 20), new ArrayList<BusCategory>() {{add(BusCategory.minibus);}}, 1);
 		addNewBusDriver("Edvards", "Agnis", "060333-36378", LocalDate.of(2024, 2, 16), new ArrayList<BusCategory>() {{add(BusCategory.largebus);}}, 5);
@@ -48,7 +46,6 @@ public class MainService {
 		addNewCategoryForBusDriver(BusCategory.largebus, "321654-56473");
 		System.out.println("Find all bus drivers with largebus category: " + findBusDriverForCategory(BusCategory.largebus));
 		System.out.println("Find all bus drivers: " + findAllBusDrivers());
-		//System.out.println(allEmployeesList);
 		
 		
 		System.out.println("\n---Station---");
@@ -60,9 +57,11 @@ public class MainService {
 		
 		System.out.println("\n---BusTrip---");
 		LocalDateTime nowTime = LocalDateTime.now(); 
-		addNewBusTrip(findStationByName("VentspilsAO"), findStationByName("RigaAO"), nowTime, nowTime.plusHours(3), 35, findBusDriverForCategory(BusCategory.largebus).get(0));
+		addNewBusTrip(findStationByName("VentspilsAO"), findStationByName("RigaAO"), nowTime.plusHours(1), nowTime.plusHours(3), 35, findBusDriverForCategory(BusCategory.largebus).get(0));
 		addNewBusTrip(findStationByName("VentspilsAO"), findStationByName("LiepajaAO"), nowTime, nowTime.plusHours(2), 2, findBusDriverForCategory(BusCategory.minibus).get(1));
-		System.out.println("Find all bus trips from station today: " + findAllBusTripsFromStationToday(findStationByName("VentspilsAO")));
+		addNewBusTrip(findStationByName("VentspilsAO"), findStationByName("LiepajaAO"), nowTime.plusHours(4), nowTime.plusHours(6), 15, findBusDriverForCategory(BusCategory.minibus).get(0));
+		addNewBusTrip(findStationByName("RigaAO"), findStationByName("LiepajaAO"), nowTime.plusHours(3), nowTime.plusHours(6), 25, findBusDriverForCategory(BusCategory.schoolbus).get(0));
+		System.out.println("Find all bus trips from station VentspilsAO today: " + findAllBusTripsFromStationToday(findStationByName("VentspilsAO")));
 		System.out.println("Find free spots Ventspils-Riga: " + freeSeatCountOnBusTrip(nowTime, findStationByName("VentspilsAO"), findStationByName("RigaAO")));
 		System.out.println("Find all tickets for Ventspils-Riga: " + findAllTicketsForBusTrip(nowTime, findStationByName("VentspilsAO"), findStationByName("RigaAO")));
 		
@@ -80,6 +79,9 @@ public class MainService {
 		System.out.println("Income by cashier \"123456-78910\": " + incomeByCashierToday("123456-78910")); //(11.2-1)+(11.2-1)+(11.2-1)+(16.2-0)+(11.2) = 57
 		
 		System.out.println("\n---Extra---");
+		System.out.println("Sort bus trips in station Ventspils" + sortBusTripByTimeToday(findStationByName("VentspilsAO")));
+		System.out.println("Generating Bus Trips for the week: \n");
+		generateBusTrips();
 	}
 	public static void addNewCashier(String name, String surname, String personCode, LocalDate dateTime) {
 		allEmployeesList.add(new Cashier(name, surname, personCode, dateTime));
@@ -241,10 +243,57 @@ public class MainService {
 		}
 		return allVipTickets;
 	}
-	/*public static ArrayList<BusTrip> sortBusTripByTimeToday(Station station) {
-		
+	public static ArrayList<BusTrip> sortBusTripByTimeToday(Station station) {
+		ArrayList<BusTrip> allBusTrips = new ArrayList<>();
+		for (BusTrip temp: allBusTripList) {
+			if (temp.getStartStation() == station) {
+				allBusTrips.add(temp);	
+			}
+		}
+		for (BusTrip tempTrip1: allBusTrips) {
+			for (BusTrip tempTrip2: allBusTrips) {
+				if (tempTrip1.getFromDateTime().isAfter(tempTrip2.getFromDateTime())) {
+					
+					BusTrip temp = tempTrip1;
+					tempTrip1 = tempTrip2;
+					tempTrip2 = temp;
+				}
+			}
+		}
+		return allBusTrips;
 	}
 	public static void generateBusTrips() {
-		
-	}*/
+		LocalDateTime startDate = LocalDateTime.now();
+		while (startDate.isBefore(LocalDateTime.now().plusDays(7))) {
+			int startStation = getRandNum(0, 4);
+			int leaveStation = getRandNum(0, 4);
+			int seatCount = getRandNum(10, 50);
+			ArrayList<BusDriver> largeBusDrivers = new ArrayList<>();
+			BusDriver driver = new BusDriver();
+			if (seatCount >= 30) {
+				for (Employee temp: findAllBusDrivers()) {
+					if (temp instanceof BusDriver) {
+						BusDriver temp2 = (BusDriver) temp;
+						if (temp2.getCategories().contains(BusCategory.largebus)) {
+							largeBusDrivers.add(temp2);
+						}
+					}
+				}
+				driver = largeBusDrivers.get(getRandNum(0, largeBusDrivers.size()));
+			} else {
+				driver = (BusDriver) findAllBusDrivers().get(getRandNum(0, findAllBusDrivers().size()));
+			}
+			LocalDateTime arriveDate = startDate.plusMinutes(getRandNum(30, 250));
+			while (startStation == leaveStation) {
+				leaveStation = getRandNum(0, 4);
+			}
+			
+			addNewBusTrip(allStationList.get(startStation), allStationList.get(leaveStation), startDate, arriveDate, seatCount, driver);
+			System.out.println(allBusTripList.get(allBusTripList.size() - 1));
+			startDate = startDate.plusMinutes(getRandNum(60, 480));
+		}
+	}
+	public static int getRandNum(int min, int max) {
+	    return (int) ((Math.random() * (max - min)) + min);
+	}
 }
